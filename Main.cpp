@@ -34,20 +34,34 @@ void askInput() {
 		std::cout << "how many tiles between u and nearest enemy (x): " << std::to_string(getDistanceX(getSpecificObject(Player, objects).position, getNearestEnemy(getSpecificObject(Player, objects).position, objects)) / tilePixelWidth) << "\n";
 		double time = (getDistanceX(getSpecificObject(Player, objects).position, getNearestEnemy(getSpecificObject(Player, objects).position, objects)) / tilePixelWidth) / speed;
 		double time2 = (getDistanceY(getMid(getSpecificObject(Player, objects).rect), getNearestEnemy(getMid(getSpecificObject(Player, objects).rect), objects)) / tilePixelWidth) / speed;
-		std::cout << "old time: " << std::to_string(time) << "\n";
-		std::cout << "new time: " << std::to_string(time2) << "\n";
-
+		
+		double tileDistanceX = (getDistanceX(getSpecificObject(Player, objects).position, getNearestEnemy(getSpecificObject(Player, objects).position, objects)) / tilePixelWidth) ;
+		double tileDistanceY = (getDistanceY(getMid(getSpecificObject(Player, objects).rect), getNearestEnemy(getMid(getSpecificObject(Player, objects).rect), objects)) / tilePixelWidth);
+		double tileDistanceDiagonal = sqrt(std::pow(tileDistanceX, 2) + std::pow(tileDistanceY, 2));
+		std::cout << "x: " << std::to_string(tileDistanceX) << "\n";
+		std::cout << "y: " << std::to_string(tileDistanceY) << "\n";
+		double time3 = tileDistanceDiagonal / speed;
 		char key = getAppropriateKeyX(getSpecificObject(Player, objects).position, getNearestEnemy(getSpecificObject(Player, objects).position, objects));
 		char key2 = getAppropriateKeyY(getSpecificObject(Player, objects).position, getNearestEnemy(getSpecificObject(Player, objects).position, objects));
 
-		keepDown(hwndChild, key, time);
-		keepDown(hwndChild, key2, time2);
-		PostMessage(hwndChild, WM_KEYUP, key, 0);
-		PostMessage(hwndChild, WM_KEYUP, key2, 0);
+		if (abs(tileDistanceX - tileDistanceY) < 0.7) {
+			std::cout << "Diagonal! \n";
+			std::thread moveX(keepDown, hwndChild, key, time3);
+			std::thread moveY(keepDown, hwndChild, key2, time3);
+			moveY.join();
+			moveX.join();
+		}
+		else {
+			std::cout << "not Diagonal! \n";
+			keepDown(hwndChild, key, time);
+			keepDown(hwndChild, key2, time2);
+		}
+		
+		autoAim(hwndChild, 0);
 		askInput();
 		
 	}
-
+	 
 	else if (choice == 2) {
 
 
@@ -55,6 +69,21 @@ void askInput() {
 		
 		askInput();
 	}
+
+	else if (choice == 3) {
+		double tilePixelWidth = getWindowSize(hwndChild)[0] / tileWidth;
+		double tilePixelHeight = getWindowSize(hwndChild)[1] / tileHeight;
+		//sqrt(std::pow(tileDistanceX, 2) + std::pow(tileDistanceY, 2))
+		while (sqrt(std::pow((getDistanceX(getSpecificObject(Player, objects).position, getNearestEnemy(getSpecificObject(Player, objects).position, objects)) / tilePixelWidth), 2)
+			+ std::pow((getDistanceY(getMid(getSpecificObject(Player, objects).rect), getNearestEnemy(getMid(getSpecificObject(Player, objects).rect), objects)) / tilePixelWidth), 2)) < 4) {
+			autoAim(hwndChild, 0);
+		}
+
+		std::cout << std::to_string(sqrt(std::pow((getDistanceX(getSpecificObject(Player, objects).position, getNearestEnemy(getSpecificObject(Player, objects).position, objects)) / tilePixelWidth), 2)
+			+ std::pow((getDistanceY(getMid(getSpecificObject(Player, objects).rect), getNearestEnemy(getMid(getSpecificObject(Player, objects).rect), objects)) / tilePixelWidth), 2))) << "\n";
+		askInput();
+	}
+
 
 	else {
 		std::cout << "wrong."; 

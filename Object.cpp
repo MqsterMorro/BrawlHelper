@@ -1,15 +1,15 @@
 #include "Object.h"
 #include <map>
-
+#include <cmath>
 
 Object::Object() {
 }
 
 Object::Object(cv::Rect rect, int x, int y, Name name) {
-    
-    this->rect = rect;
-    this->position = cv::Point(x, y);
-    this->name = name;
+
+	this->rect = rect;
+	this->position = cv::Point(x, y);
+	this->name = name;
 }
 
 void drawEnemyLines(cv::Mat background, std::vector<Object> objects, cv::Point playerLocation) {
@@ -30,7 +30,7 @@ void drawEnemyLines(cv::Mat background, std::vector<Object> objects, cv::Point p
 	for (size_t i = 0; i < enemies.size(); i++) {
 		int height = abs(enemies[i].position.y - playerLocation.y);
 		int width = abs(enemies[i].position.x - playerLocation.x);
-		int distance = sqrt(width + height);
+		int distance = sqrt(std::pow(height, 2) + std::pow(width, 2));
 		distances.insert(std::pair<int, cv::Point>(distance, enemies[i].position));
 	}
 	// Create a map iterator and point to beginning of map
@@ -47,6 +47,7 @@ void drawEnemyLines(cv::Mat background, std::vector<Object> objects, cv::Point p
 		}
 	}
 
+
 	nearest = distances.find(smallest)->second;
 	cv::line(background, nearest, playerLocation, cv::Scalar(0, 255, 0), 1);
 
@@ -55,8 +56,22 @@ void drawEnemyLines(cv::Mat background, std::vector<Object> objects, cv::Point p
 int getDistance(cv::Point one, cv::Point two) {
 	int height = abs(one.y - two.y);
 	int width = abs(one.x - two.x);
-	std::cout << "abs distance is " << sqrt(height + width) << std::endl;
-	return (sqrt(height + width));
+	std::cout << "abs distance is " << sqrt(std::pow(height, 2)+ std::pow(width, 2)) << std::endl;
+	return sqrt(std::pow(height, 2) + std::pow(width, 2));
+}
+
+double getDistanceX(cv::Point one, cv::Point two) {
+	int width = abs(one.x - two.x);
+	return width;
+}
+
+double getDistanceY(cv::Point one, cv::Point two) {
+	int height = abs(one.y - two.y);
+	return height;
+}
+
+cv::Point getMid(cv::Rect rect) {
+	return cv::Point(rect.x + rect.width , rect.y);
 }
 
 void drawObjects(cv::Mat background, std::vector<Object> objects) {
@@ -104,7 +119,7 @@ void drawObjects(cv::Mat background, std::vector<Object> objects) {
 
 }
 
-void getObjects(cv::Mat img, cv::Scalar low, cv::Scalar high, Name name, std::vector<Object> &objects) {
+void getObjects(cv::Mat img, cv::Scalar low, cv::Scalar high, Name name, std::vector<Object>& objects) {
 	cv::Mat mask;
 	cv::inRange(img, low, high, mask);
 	std::vector<std::vector<cv::Point> > contours;
@@ -144,7 +159,7 @@ void getObjects(cv::Mat img, cv::Scalar low, cv::Scalar high, Name name, std::ve
 }
 
 Object getSpecificObject(Name name, std::vector<Object> objects) {
-		
+
 	std::vector<Object> theseObjects;
 
 	for (size_t i = 0; i < objects.size(); i++) {
@@ -166,7 +181,7 @@ char getAppropriateKeyX(cv::Point location, cv::Point destination) {
 	if (location.x > destination.x) {
 		return 'A';
 	}
-	else if (location.x < destination.x ) {
+	else if (location.x < destination.x) {
 		return 'D';
 	}
 
@@ -194,7 +209,7 @@ cv::Point getNearestEnemy(cv::Point position, std::vector<Object> objects) {
 	}
 	//check  if there are any enemies / else return
 	if (enemies.size() <= 0) {
-		return cv::Point(0,0);
+		return cv::Point(0, 0);
 	}
 
 	cv::Point nearest;
@@ -204,7 +219,7 @@ cv::Point getNearestEnemy(cv::Point position, std::vector<Object> objects) {
 		int height = abs(enemies[i].position.y - position.y);
 		int width = abs(enemies[i].position.x - position.x);
 		int distance = sqrt(width + height);
-		distances.insert(std::pair<int, cv::Point>(distance, enemies[i].position));
+		distances.insert(std::pair<int, cv::Point>(distance, getMid(enemies[i].rect)));
 	}
 	// Create a map iterator and point to beginning of map
 	std::map<int, cv::Point>::iterator it = distances.begin();
@@ -219,7 +234,8 @@ cv::Point getNearestEnemy(cv::Point position, std::vector<Object> objects) {
 			smallest = distancesInt[i];
 		}
 	}
-
+	
 	nearest = distances.find(smallest)->second;
+	
 	return nearest;
 }

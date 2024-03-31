@@ -319,3 +319,31 @@ double getTileArea(HWND hwnd) {
 	return  tilePixelHeight * tilePixelHeight;
 
 }
+
+boolean isInRange(HWND hwnd, cv::Point position, cv::Point destination, double rangeInTiles) {
+
+	double tilePixelWidth = getWindowSize(hwnd)[0] / 24;
+	double tilePixelHeight = getWindowSize(hwnd)[1] / 17;
+
+	double xDistance = abs(position.x - destination.x);
+	double yDistance = abs(position.y - destination.y);
+
+	double xDistanceTiles = xDistance / tilePixelWidth;
+	double yDistanceTiles = yDistance / tilePixelHeight;
+	double diagonalDistanceTiles = sqrt(std::pow(xDistanceTiles, 2.0) + std::pow(yDistanceTiles, 2.0));
+	std::cout << "Diagon Distance Tiles (Range) is: " << std::to_string(diagonalDistanceTiles) << "\n";
+	return rangeInTiles > diagonalDistanceTiles;
+}
+
+double getTileDistance(HWND hwnd, cv::Point position, cv::Point destination) {
+	double tilePixelWidth = getWindowSize(hwnd)[0] / 24;
+	double tilePixelHeight = getWindowSize(hwnd)[1] / 17;
+
+	double xDistance = abs(position.x - destination.x);
+	double yDistance = abs(position.y - destination.y);
+
+	double xDistanceTiles = xDistance / tilePixelWidth;
+	double yDistanceTiles = yDistance / tilePixelHeight;
+	double diagonalDistanceTiles = sqrt(std::pow(xDistanceTiles, 2.0) + std::pow(yDistanceTiles, 2.0));
+	return diagonalDistanceTiles;
+}

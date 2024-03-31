@@ -13,7 +13,7 @@ void shootCoordinate(HWND hwnd, cv::Point pos) {
 
 	PostMessage(hwnd, WM_ACTIVATE, WA_CLICKACTIVE, 0);
 	PostMessage(hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(pos.x, pos.y - 50));
-	Sleep(50);
+	Sleep(500);
 	PostMessage(hwnd, WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(pos.x, pos.y - 50));
 }
 

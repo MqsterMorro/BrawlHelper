@@ -63,7 +63,7 @@ void keepDown(HWND hwndChild, char key, double time) {
 	SendMessage(hwndChild, WM_ACTIVATE, WA_CLICKACTIVE, 0);
 	
 		PostMessage(hwndChild, WM_KEYDOWN, key, 0);
-		Sleep(time * 1000);
+		Sleep((time * 1000));
 		PostMessage(hwndChild, WM_KEYUP, key, 0);
 	
 	

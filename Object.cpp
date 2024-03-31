@@ -98,7 +98,7 @@ void drawObjects(cv::Mat background, std::vector<Object> objects) {
 				first = objects[i];
 				rectangle(background, objects[i].rect.tl(), objects[i].rect.br(), CV_RGB(255, 0, 0), 2);
 			}
-			drawEnemyLines(background, objects, getSpecificObject(Player, objects).position);
+			drawEnemyLines(background, objects, getSpecificObject(Player, objects)[0].position);
 			break;
 		case Enemy:
 			cv::putText(background, std::to_string(int(objects[i].position.x)) + " " + std::to_string(int(objects[i].position.y)), objects[i].rect.tl(), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(50, 50, 50));
@@ -119,6 +119,7 @@ void drawObjects(cv::Mat background, std::vector<Object> objects) {
 
 }
 
+
 void getObjects(cv::Mat img, cv::Scalar low, cv::Scalar high, Name name, std::vector<Object>& objects) {
 	cv::Mat mask;
 	cv::inRange(img, low, high, mask);
@@ -133,6 +134,7 @@ void getObjects(cv::Mat img, cv::Scalar low, cv::Scalar high, Name name, std::ve
 		case Player:
 			if (boundRect.area() > 500 && (boundRect.width < 70 || boundRect.height < 70)) {
 				objects.emplace_back(boundRect, boundRect.x + boundRect.width / 2, boundRect.y + boundRect.height / 2, name);
+				
 			}
 			break;
 		case Enemy:
@@ -154,11 +156,13 @@ void getObjects(cv::Mat img, cv::Scalar low, cv::Scalar high, Name name, std::ve
 			break;
 		}
 
+		
+
 	}
 
 }
 
-Object getSpecificObject(Name name, std::vector<Object> objects) {
+std::vector<Object> getSpecificObject(Name name, std::vector<Object> objects) {
 
 	std::vector<Object> theseObjects;
 
@@ -170,9 +174,10 @@ Object getSpecificObject(Name name, std::vector<Object> objects) {
 
 	if (theseObjects.empty()) {
 		std::cout << "Didnt find any objects!" << std::endl;
+		return theseObjects;
 	}
 	else {
-		return theseObjects[0];
+		return theseObjects;
 	}
 }
 
@@ -184,6 +189,10 @@ char getAppropriateKeyX(cv::Point location, cv::Point destination) {
 	else if (location.x < destination.x) {
 		return 'D';
 	}
+	else {
+		std::cout << "\n Same location! Weird \n";
+		return 'U';
+	}
 
 }
 
@@ -194,6 +203,10 @@ char getAppropriateKeyY(cv::Point location, cv::Point destination) {
 	}
 	else if (location.y < destination.y) {
 		return 'S';
+	}
+	else {
+		std::cout << "\n Same location! Weird \n";
+		return 'U';
 	}
 
 }

@@ -2,7 +2,8 @@
 #include <opencv2/core/types.hpp>
 #include <opencv2/opencv.hpp>
 #include <iostream>
-
+#include <Windows.h>
+#include "WindowUtils.h"
 
 enum Name { Player, Enemy, Bush, Ally };
 
@@ -28,3 +29,7 @@ cv::Point getNearestEnemy(cv::Point, std::vector<Object>);
 double getDistanceX(cv::Point, cv::Point);
 double getDistanceY(cv::Point, cv::Point);
 cv::Point getMid(cv::Rect);
+double getTilesX(HWND hwnd, int widthInPixels);
+double getTilesY(HWND hwnd, int heightInPixels);
+double getTileArea(HWND hwnd);
+double getTileWidth(HWND hwnd);

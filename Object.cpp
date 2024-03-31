@@ -12,6 +12,11 @@ Object::Object(cv::Rect rect, int x, int y, Name name) {
 	this->name = name;
 }
 
+
+LPCWSTR windowTitleHere = L"BlueStacks App Player";
+HWND hWNDHere = FindWindow(NULL, windowTitleHere);
+HWND hwndChildHere = GetWindow(hWNDHere, GW_CHILD);
+
 void drawEnemyLines(cv::Mat background, std::vector<Object> objects, cv::Point playerLocation) {
 
 
@@ -80,28 +85,13 @@ void drawObjects(cv::Mat background, std::vector<Object> objects) {
 	for (size_t i = 0; i < objects.size(); i++) {
 		switch (objects[i].name) {
 		case Player:
-			cv::putText(background, std::to_string(int(objects[i].position.x)) + " " + std::to_string(int(objects[i].position.y)), objects[i].rect.tl(), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(50, 50, 50));
-			count++;
-			if (count >= 2) {
-				if (250 > abs(first.rect.x - objects[i].rect.x)) {
-					std::cout << "2 players!?";
-					if (first.rect.tl().x < objects[i].rect.tl().x) {
-						rectangle(background, first.rect.tl(), objects[i].rect.br(), CV_RGB(0, 255, 0), 2);
-					}
-					else {
-						rectangle(background, objects[i].rect.tl(), first.rect.br(), CV_RGB(0, 255, 0), 2);
-					}
-
-				}
-			}
-			else {
-				first = objects[i];
-				rectangle(background, objects[i].rect.tl(), objects[i].rect.br(), CV_RGB(255, 0, 0), 2);
-			}
+			cv::putText(background, "Player", objects[i].rect.tl(), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(50, 50, 50));		
+				rectangle(background, objects[i].rect.tl(), objects[i].rect.br(), CV_RGB(255, 0, 255), 2);
+			
 			drawEnemyLines(background, objects, getSpecificObject(Player, objects)[0].position);
 			break;
 		case Enemy:
-			cv::putText(background, std::to_string(int(objects[i].position.x)) + " " + std::to_string(int(objects[i].position.y)), objects[i].rect.tl(), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(50, 50, 50));
+			cv::putText(background, std::to_string(objects[i].position.x) + " " + std::to_string(objects[i].position.y), objects[i].rect.tl(), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(255, 0, 0));
 			rectangle(background, objects[i].rect.tl(), objects[i].rect.br(), CV_RGB(255, 0, 0), 2);
 			break;
 		case Bush:
@@ -129,20 +119,68 @@ void getObjects(cv::Mat img, cv::Scalar low, cv::Scalar high, Name name, std::ve
 	for (size_t i = 0; i < contours.size(); i++)
 	{
 		cv::Rect boundRect = boundingRect(contours[i]);
-
+		cv::Rect newRect;
 		switch (name) {
 		case Player:
-			if (boundRect.area() > 500 && (boundRect.width < 70 || boundRect.height < 70)) {
-				objects.emplace_back(boundRect, boundRect.x + boundRect.width / 2, boundRect.y + boundRect.height / 2, name);
+			if ( getTilesX(hwndChildHere, boundRect.width) > 0.5 &&getTilesX(hwndChildHere, boundRect.width) < 2 &&  getTilesY(hwndChildHere, boundRect.height) < 3 && getTilesY(hwndChildHere, boundRect.height) > 0.5) {
+				if (getSpecificObject(Player, objects).empty()) {
+					objects.emplace_back(boundRect, boundRect.x + boundRect.width / 2, boundRect.y + boundRect.height / 2, name);
+				}
+				else {
+					std::cout << "uh this isnt the 1st player here.. \n";
+					std::cout << "size:  " << getSpecificObject(Player, objects).size() << " \n";
+					if (boundRect.x > getSpecificObject(Player, objects)[0].position.x) {
+						newRect.x = getSpecificObject(Player, objects)[0].position.x;
+						newRect.width = boundRect.x - getSpecificObject(Player, objects)[0].position.x;
+					}
+					else {
+						newRect.x = boundRect.x;
+						newRect.width = getSpecificObject(Player, objects)[0].position.x - boundRect.x;
+					}
+
+					if (boundRect.y > getSpecificObject(Player, objects)[0].position.y) {
+						newRect.y = getSpecificObject(Player, objects)[0].position.y;
+						newRect.height = boundRect.y - getSpecificObject(Player, objects)[0].position.y;
+					}
+					else {
+						newRect.y = boundRect.y;
+						newRect.height = getSpecificObject(Player, objects)[0].position.y - boundRect.y;
+					}
 				
-			}
+					int index;
+					//remove the first player object
+					for (size_t i = 0; i < objects.size(); i++) {
+						if (objects[i].name == Player) {
+							index = i;
+							break;
+						}
+					}
+					index = index - 1;
+					auto elem_to_remove = objects.begin() + index;
+					if (elem_to_remove != objects.end()) {
+						objects.erase(elem_to_remove);
+					}
+					std::cout << "Removed successfully! \n";
+						objects.emplace_back(newRect, newRect.x + newRect.width / 2, newRect.y + newRect.height / 2, name);
+					
+					
+				}
+	}
 			break;
 		case Enemy:
-			if (boundRect.area() > 950 && (boundRect.width < 70 || boundRect.height < 70) && (30 > std::abs(boundRect.width - boundRect.height))) {
+			if (0.4 * getTileArea(hwndChildHere) < boundRect.area() && getTilesX(hwndChildHere, boundRect.width) > 0.2 && getTilesX(hwndChildHere, boundRect.width) < 2 && getTilesY(hwndChildHere, boundRect.height) < 2 && getTilesY(hwndChildHere, boundRect.height) > 0.7) {
 				//std::cout << std::abs(boundRect.width - boundRect.height) << std::endl;
-				objects.emplace_back(boundRect, boundRect.x + boundRect.width / 2, boundRect.y + boundRect.height / 2, name);
+					
+						objects.emplace_back(boundRect, boundRect.x + boundRect.width / 2, boundRect.y + boundRect.height / 2, name);
+
+					
+				
+
+					
+				
 
 			}
+			
 			break;
 		case Bush:
 			if (boundRect.area() > 2000 && (boundRect.width < 70 || boundRect.height < 70)) {
@@ -150,7 +188,7 @@ void getObjects(cv::Mat img, cv::Scalar low, cv::Scalar high, Name name, std::ve
 			}
 			break;
 		case Ally:
-			if (boundRect.area() > 1050 && (boundRect.width < 70 || boundRect.height < 70)) {
+			if (0.4 * getTileArea(hwndChildHere) < boundRect.area() && getTilesX(hwndChildHere, boundRect.width) > 0.6 && (getTilesX(hwndChildHere, boundRect.width) < 4 || getTilesY(hwndChildHere, boundRect.height) < 4)) {
 				objects.emplace_back(boundRect, boundRect.x + boundRect.width / 2, boundRect.y + boundRect.height / 2, name);
 			}
 			break;
@@ -251,4 +289,33 @@ cv::Point getNearestEnemy(cv::Point position, std::vector<Object> objects) {
 	nearest = distances.find(smallest)->second;
 	
 	return nearest;
+}
+
+double getTilesX(HWND hwnd, int widthInPixels) {
+
+	double tilePixelWidth = getWindowSize(hwnd)[0] / 24;
+	return widthInPixels / tilePixelWidth;
+
+}
+
+double getTileWidth(HWND hwnd) {
+
+	double tilePixelWidth = getWindowSize(hwnd)[0] / 24;
+	return tilePixelWidth;
+
+}
+
+double getTilesY(HWND hwnd, int heightInPixels) {
+
+	double tilePixelHeight = getWindowSize(hwnd)[0] / 17;
+	return heightInPixels / tilePixelHeight;
+
+}
+
+double getTileArea(HWND hwnd) {
+
+	double tilePixelWidth = getWindowSize(hwnd)[0] / 24;
+	double tilePixelHeight = getWindowSize(hwnd)[0] / 17;
+	return  tilePixelHeight * tilePixelHeight;
+
 }

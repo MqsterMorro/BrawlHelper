@@ -16,7 +16,7 @@ cv::Point nearestEnemy;
 
 LPCWSTR windowTitle = L"BlueStacks App Player";
 HWND hWND = FindWindow(NULL, windowTitle);
-HWND hwndChild = GetWindow(hWND, GW_CHILD);
+ HWND hwndChild = GetWindow(hWND, GW_CHILD);
 
 BotState State = SEARCHING;
 int tileWidth = 24;
@@ -32,7 +32,7 @@ double tileDistanceY;
 double tileDistanceDiagonal;
 double key;
 double key2;
-double speed = 3;
+double speed = 2.57;
 Object lastPlayer;
 double iteration;
 
@@ -59,7 +59,7 @@ void doBotState(BotState botState) {
 						  if (!getSpecificObject(Player, objects).empty() && !getSpecificObject(Enemy, objects).empty()) {
 							  std::cout << "how many tiles between u and nearest enemy (x): " << std::to_string(getDistanceX(getSpecificObject(Player, objects)[0].position, getNearestEnemy(getSpecificObject(Player, objects)[0].position, objects)) / tilePixelWidth) << "\n";
 							  myTime = (getDistanceX(getSpecificObject(Player, objects)[0].position, getNearestEnemy(getSpecificObject(Player, objects)[0].position, objects)) / tilePixelWidth) / speed;
-							  time2 = (getDistanceY(getMid(getSpecificObject(Player, objects)[0].rect), getNearestEnemy(getMid(getSpecificObject(Player, objects)[0].rect), objects)) / tilePixelWidth) / speed;
+							  time2 = (getDistanceY(getMid(getSpecificObject(Player, objects)[0].rect), getNearestEnemy(getMid(getSpecificObject(Player, objects)[0].rect), objects)) / tilePixelHeight) / speed;
 						  }
 						  else {
 							  std::cout << "Error getting Distances! \n";
@@ -68,7 +68,7 @@ void doBotState(BotState botState) {
 							  break;
 						  }
 						  tileDistanceX = (getDistanceX(getSpecificObject(Player, objects)[0].position, getNearestEnemy(getSpecificObject(Player, objects)[0].position, objects)) / tilePixelWidth);
-						  tileDistanceY = (getDistanceY(getMid(getSpecificObject(Player, objects)[0].rect), getNearestEnemy(getMid(getSpecificObject(Player, objects)[0].rect), objects)) / tilePixelWidth);
+						  tileDistanceY = (getDistanceY(getMid(getSpecificObject(Player, objects)[0].rect), getNearestEnemy(getMid(getSpecificObject(Player, objects)[0].rect), objects)) / tilePixelHeight);
 						  tileDistanceDiagonal = sqrt(std::pow(tileDistanceX, 2) + std::pow(tileDistanceY, 2));
 						  std::cout << "x: " << std::to_string(tileDistanceX) << "\n";
 						  std::cout << "y: " << std::to_string(tileDistanceY) << "\n";
@@ -106,15 +106,15 @@ void doBotState(BotState botState) {
 		case WALKING:
 			if (abs(tileDistanceX - tileDistanceY) < 0.7) {
 				std::cout << "Diagonal! \n";
-				std::thread moveX(keepDown, hwndChild, key, time3);
-				std::thread moveY(keepDown, hwndChild, key2, time3);
+				std::thread moveX(keepDown, hwndChild, key, 0.8 * time3);
+				std::thread moveY(keepDown, hwndChild, key2, 0.8 * time3);
 				moveY.join();
 				moveX.join();
 			}
 			else {
 				std::cout << "not Diagonal! \n";
-				keepDown(hwndChild, key, myTime);
-				keepDown(hwndChild, key2, time2);
+				keepDown(hwndChild, key, 0.8 * myTime);
+				keepDown(hwndChild, key2, 0.8 * time2);
 			}
 			State = ATTACKING;
 			doBotState(ATTACKING);
@@ -263,10 +263,10 @@ void movePlayer() {
 	clickKey(hwndChild, getAppropriateKeyY(getSpecificObject(Player, objects)[0].position, getNearestEnemy(getSpecificObject(Player, objects)[0].position, objects)), "up");
 }
 
-cv::Scalar playerLow = cv::Scalar(51, 136, 155);
-cv::Scalar playerHigh = cv::Scalar(59, 196, 215);
-cv::Scalar enemyLow = cv::Scalar(1, 147, 201);
-cv::Scalar enemyHigh = cv::Scalar(2, 178, 255);
+cv::Scalar playerLow = cv::Scalar(35, 146, 182);
+cv::Scalar playerHigh = cv::Scalar(59, 200, 255);
+cv::Scalar enemyLow = cv::Scalar(0, 134, 225);
+cv::Scalar enemyHigh = cv::Scalar(10, 173, 255);
 cv::Scalar bushLow = cv::Scalar(56, 175, 128);
 cv::Scalar bushHigh = cv::Scalar(68, 133, 129);
 cv::Scalar allyLow = cv::Scalar(94, 133, 129);
@@ -278,11 +278,10 @@ void detect() {
 		cv::Mat target = getMat(hWND);
 		cv::Mat background;
 		target.copyTo(background);
-
 		objects.clear();
 		cv::cvtColor(target, target, cv::COLOR_BGR2HSV);
 		cv::Mat maskk;
-		cv::inRange(target, enemyLow, enemyHigh, maskk);
+		cv::inRange(target, playerLow, playerHigh, maskk);
 		getObjects(target, playerLow, playerHigh, Player, objects);
 		getObjects(target, enemyLow, enemyHigh, Enemy, objects);
 		getObjects(target, allyLow, allyHigh, Ally, objects);
